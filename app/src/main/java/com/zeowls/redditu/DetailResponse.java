@@ -62,6 +62,60 @@ public class DetailResponse {
         }
     }
 
+    static class Comment {
+
+        String htmlText;
+        String author;
+        String points;
+        String postedOn;
+
+        // The 'level' field indicates how deep in the hierarchy
+        // this comment is. A top-level comment has a level of 0
+        // where as a reply has level 1, and reply of a reply has
+        // level 2 and so on...
+        int level;
+
+        public String getHtmlText() {
+            return htmlText;
+        }
+
+        public void setHtmlText(String htmlText) {
+            this.htmlText = htmlText;
+        }
+
+        public String getAuthor() {
+            return author;
+        }
+
+        public void setAuthor(String author) {
+            this.author = author;
+        }
+
+        public String getPoints() {
+            return points;
+        }
+
+        public void setPoints(String points) {
+            this.points = points;
+        }
+
+        public String getPostedOn() {
+            return postedOn;
+        }
+
+        public void setPostedOn(String postedOn) {
+            this.postedOn = postedOn;
+        }
+
+        public int getLevel() {
+            return level;
+        }
+
+        public void setLevel(int level) {
+            this.level = level;
+        }
+    }
+
     class Data {
 
 //        @SerializedName("modhash")

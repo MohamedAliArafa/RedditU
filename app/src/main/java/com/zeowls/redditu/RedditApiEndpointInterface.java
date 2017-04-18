@@ -1,7 +1,5 @@
 package com.zeowls.redditu;
 
-import java.util.List;
-
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
@@ -18,5 +16,5 @@ interface RedditApiEndpointInterface {
     Call<MainResponse> getPopular();
 
     @GET("r/{url}/.json")
-    Call<List<DetailResponse>> getDetails(@Path("url") String url);
+    Call<String> getDetails(@Path("url") String url);
 }

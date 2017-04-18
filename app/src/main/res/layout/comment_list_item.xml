@@ -2,8 +2,16 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/colorPrimaryDark"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical">
+    android:orientation="horizontal">
+
+
+    <View
+        android:id="@+id/detail_list_pading"
+        android:background="@color/colorAccent"
+        android:layout_width="10dp"
+        android:layout_height="match_parent"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -62,9 +70,12 @@
                 android:textColor="@android:color/white"
                 tools:text="916 comments" />
 
+            <View
+                android:background="@color/colorAccent"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"/>
+
         </LinearLayout>
-
-
 
     </LinearLayout>
 
