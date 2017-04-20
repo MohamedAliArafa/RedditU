@@ -115,7 +115,7 @@ public class HomeFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
-            Child child = children.get(position);
+            final Child child = children.get(position);
 
             Date lastUpdated = new Date(child.getData().getCreatedUtc().longValue()*1000);
             long now = System.currentTimeMillis();
@@ -132,7 +132,9 @@ public class HomeFragment extends Fragment {
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    getFragmentManager().beginTransaction().replace(R.id.container, new DetailFragment()).commit();
+                    DetailFragment detailFragment = new DetailFragment();
+                    detailFragment.setUrl(child.getData().getPermalink());
+                    getFragmentManager().beginTransaction().replace(R.id.container, detailFragment).commit();
                 }
             });
         }

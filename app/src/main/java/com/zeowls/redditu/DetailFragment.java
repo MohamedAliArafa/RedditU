@@ -8,16 +8,23 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 
 import butterknife.BindView;
@@ -34,10 +41,25 @@ public class DetailFragment extends Fragment {
 
     @BindView(R.id.detail_recycler_view)
     RecyclerView mDetailRecycler;
+    @BindView(R.id.list_item_main_image_view)
+    ImageView mMainImage;
+    @BindView(R.id.detail_item_title_text_view)
+    TextView mTitle;
+    @BindView(R.id.detail_item_subreddit_text_view)
+    TextView mSubReddit;
+    @BindView(R.id.detail_item_author_text_view)
+    TextView mAuthor;
+    @BindView(R.id.detail_item_time_text_view)
+    TextView mTime;
+    @BindView(R.id.list_item_score_text_view)
+    TextView mScore;
+    @BindView(R.id.list_item_comments_text_view)
+    TextView mCommentsCount;
     CommentAdapter mCommentAdapter;
     ArrayList<DetailResponse.Comment> children = new ArrayList<>();
     ArrayList<DetailResponse> data = new ArrayList<>();
     Gson gson = new Gson();
+    private String url;
 
     public DetailFragment() {
         // Required empty public constructor
@@ -60,15 +82,39 @@ public class DetailFragment extends Fragment {
         mDetailRecycler.setItemAnimator(new DefaultItemAnimator());
         mCommentAdapter = new CommentAdapter(children);
         mDetailRecycler.setAdapter(mCommentAdapter);
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
         RedditApiEndpointInterface apiEndpointInterface = ApiCalls.getDetailClient()
                 .create(RedditApiEndpointInterface.class);
 
-        Call<String> call = apiEndpointInterface.getDetails("KendrickLamar/comments/65n3lr/if_kendrick_drops_a_new_album_tomorrow_ill_donate");
+        Call<String> call = apiEndpointInterface.getDetails(url);
         call.enqueue(new Callback<String>() {
             @Override
             public void onResponse(Call<String> call, Response<String> response) {
-                mCommentAdapter.children = new CommentProcessor().fetchComments(response.body());;
+                try {
+                    JSONArray r = new JSONArray(response.body())
+                            .getJSONObject(0)
+                            .getJSONObject("data")
+                            .getJSONArray("children");
+                    DetailResponse.Child header = gson.fromJson(r.get(0).toString(), DetailResponse.Child.class);
+                    Glide.with(getActivity()).load(header.getData().getThumbnail()).into(mMainImage);
+                    Date lastUpdated = new Date(header.getData().getCreatedUtc().longValue() * 1000);
+                    long now = System.currentTimeMillis();
+                    String time = (String) DateUtils.getRelativeTimeSpanString(lastUpdated.getTime(), now, DateUtils.HOUR_IN_MILLIS);
+                    mTitle.setText(header.getData().getTitle());
+                    mSubReddit.setText(header.getData().getSubreddit());
+                    mAuthor.setText(header.getData().getAuthor());
+                    mScore.setText(String.valueOf(header.getData().getScore()));
+                    mCommentsCount.setText(header.getData().getNumComments() + " comments");
+                    mTime.setText(time);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                mCommentAdapter.children = new CommentProcessor().fetchComments(response.body());
+                ;
                 mCommentAdapter.notifyDataSetChanged();
             }
 
@@ -91,6 +137,10 @@ public class DetailFragment extends Fragment {
         }
     }
 
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
     class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.MyViewHolder> {
 
         ArrayList<DetailResponse.Comment> children;
@@ -110,7 +160,7 @@ public class DetailFragment extends Fragment {
                 author = (TextView) view.findViewById(R.id.detail_list_author);
                 score = (TextView) view.findViewById(R.id.detail_list_score);
                 time = (TextView) view.findViewById(R.id.detail_list_time);
-                padding =  view.findViewById(R.id.detail_list_pading);
+                padding = view.findViewById(R.id.detail_list_pading);
 //                comments = (TextView) view.findViewById(R.id.list_item_comments_text_view);
             }
         }
@@ -131,7 +181,7 @@ public class DetailFragment extends Fragment {
 //            Date lastUpdated = new Date(child.getData().getCreatedUtc().longValue()*1000);
 //            long now = System.currentTimeMillis();
 //            String time = (String) DateUtils.getRelativeTimeSpanString(lastUpdated.getTime(), now, DateUtils.HOUR_IN_MILLIS);
-                holder.itemView.setPadding(child.getLevel()*10, 0, 0, 0);
+                holder.itemView.setPadding(child.getLevel() * 10, 0, 0, 0);
                 holder.title.setText(child.getHtmlText() + ":" + String.valueOf(child.getLevel()));
 //            holder.subreddit.setText(child.getData().getSubreddit());
                 holder.author.setText(child.getAuthor());
