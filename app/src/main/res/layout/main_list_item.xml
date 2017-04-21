@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.v7.widget.CardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
@@ -9,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:layout_gravity="bottom"
-        android:background="@android:color/darker_gray"/>
+        android:background="@android:color/darker_gray" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
@@ -20,7 +19,8 @@
         android:orientation="horizontal">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
+            android:layout_weight="2"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
@@ -50,7 +50,7 @@
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_weight="6"
             android:orientation="vertical">
 
             <TextView
@@ -66,46 +66,59 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/list_item_subreddit_text_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/holo_red_light"
-                    tools:text="animals" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/darker_gray"
-                    android:text=" - " />
-
-                <TextView
                     android:id="@+id/list_item_author_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:paddingEnd="5dp"
+                    android:paddingRight="5dp"
                     android:textColor="@android:color/darker_gray"
                     tools:text="cats.com" />
 
                 <TextView
+                    android:id="@+id/list_item_subreddit_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/darker_gray"
-                    android:text=" - " />
+                    android:paddingEnd="5dp"
+                    android:paddingRight="5dp"
+                    android:textColor="@android:color/holo_red_light"
+                    tools:text="animals" />
 
-                <TextView
-                    android:id="@+id/list_item_time_text_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/darker_gray"
-                    tools:text="14h" />
 
             </LinearLayout>
 
             <TextView
-                android:id="@+id/list_item_comments_text_view"
+                android:id="@+id/list_item_time_text_view"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/darker_gray"
-                tools:text="916 comments" />
+                android:textColor="@android:color/holo_blue_light"
+                android:paddingEnd="5dp"
+                android:paddingRight="5dp"
+                tools:text="14h" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/list_item_comments_text_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingEnd="5dp"
+                    android:paddingRight="5dp"
+                    android:textColor="@android:color/holo_orange_light"
+                    tools:text="916" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingEnd="5dp"
+                    android:paddingRight="5dp"
+                    android:textColor="@android:color/holo_orange_light"
+                    android:text="@string/comment_count_suffix" />
+
+            </LinearLayout>
+
+
 
         </LinearLayout>
 
@@ -113,9 +126,9 @@
             android:id="@+id/list_item_main_image_view"
             android:layout_width="75dp"
             android:layout_height="75dp"
-            android:scaleType="centerCrop"
             android:layout_margin="5dp"
             android:background="@color/colorAccent"
+            android:scaleType="centerCrop"
             android:src="@mipmap/ic_launcher" />
 
     </LinearLayout>

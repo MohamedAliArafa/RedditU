@@ -3,14 +3,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.zeowls.redditu.DetailFragment"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/colorPrimary">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/detail_header"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimaryDark"
         android:gravity="center"
+        android:elevation="5dp"
         android:padding="12dp"
         android:orientation="horizontal">
 
@@ -20,8 +23,7 @@
             android:layout_height="75dp"
             android:scaleType="centerCrop"
             android:layout_margin="5dp"
-            android:background="@color/colorAccent"
-            android:src="@mipmap/ic_launcher" />
+            android:background="@color/colorAccent" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -45,27 +47,19 @@
                     android:id="@+id/detail_item_subreddit_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:paddingEnd="5dp"
+                    android:paddingRight="5dp"
                     android:textColor="@android:color/holo_red_light"
                     tools:text="animals" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/darker_gray"
-                    android:text=" - " />
 
                 <TextView
                     android:id="@+id/detail_item_author_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:paddingEnd="5dp"
+                    android:paddingRight="5dp"
                     android:textColor="@android:color/darker_gray"
                     tools:text="cats.com" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/darker_gray"
-                    android:text=" - " />
 
                 <TextView
                     android:id="@+id/detail_item_time_text_view"
@@ -78,27 +72,40 @@
 
             <LinearLayout
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:gravity="center">
 
                 <TextView
                     android:id="@+id/list_item_score_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@color/colorAccent"
+                    android:textColor="@android:color/holo_orange_light"
                     tools:text="1627" />
 
-                <TextView
+                <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/darker_gray"
-                    android:text=" - " />
+                    android:paddingEnd="5dp"
+                    android:paddingRight="5dp"
+                    android:src="@android:drawable/star_on"
+                    android:tint="@android:color/holo_orange_light"/>
 
                 <TextView
                     android:id="@+id/list_item_comments_text_view"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textColor="@android:color/darker_gray"
-                    tools:text="916 comments" />
+                    android:paddingEnd="5dp"
+                    android:paddingRight="5dp"
+                    android:textColor="@android:color/holo_blue_bright"
+                    tools:text="916" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingEnd="5dp"
+                    android:paddingRight="5dp"
+                    android:textColor="@android:color/holo_blue_light"
+                    android:text="@string/comment_count_suffix" />
 
             </LinearLayout>
 

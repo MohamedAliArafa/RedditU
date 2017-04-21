@@ -1,19 +1,21 @@
 package com.zeowls.redditu;
 
 
+import android.app.Dialog;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,7 +26,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Random;
 
 import butterknife.BindView;
@@ -55,9 +56,10 @@ public class DetailFragment extends Fragment {
     TextView mScore;
     @BindView(R.id.list_item_comments_text_view)
     TextView mCommentsCount;
+    @BindView(R.id.detail_header)
+    LinearLayout mHeader;
     CommentAdapter mCommentAdapter;
     ArrayList<DetailResponse.Comment> children = new ArrayList<>();
-    ArrayList<DetailResponse> data = new ArrayList<>();
     Gson gson = new Gson();
     private String url;
 
@@ -71,12 +73,26 @@ public class DetailFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_detail, container, false);
         ButterKnife.bind(this, v);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mMainImage.setTransitionName(getArguments().getString("image_trans"));
+            mTitle.setTransitionName(getArguments().getString("title_trans"));
+            mSubReddit.setTransitionName(getArguments().getString("sub_trans"));
+            mAuthor.setTransitionName(getArguments().getString("author_trans"));
+        }
+        mMainImage.setImageBitmap((Bitmap) getArguments().getParcelable("Image"));
+        mTitle.setText(getArguments().getString("Title"));
+        mSubReddit.setText(getArguments().getString("Subreddit"));
+        mAuthor.setText(getArguments().getString("Author"));
+        mScore.setText(String.valueOf(getArguments().getString("Score")));
+        mCommentsCount.setText(getArguments().getString("NumComments"));
+        mTime.setText(getArguments().getString("Time"));
         return v;
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         mDetailRecycler.setLayoutManager(mLayoutManager);
         mDetailRecycler.setItemAnimator(new DefaultItemAnimator());
@@ -90,6 +106,8 @@ public class DetailFragment extends Fragment {
         RedditApiEndpointInterface apiEndpointInterface = ApiCalls.getDetailClient()
                 .create(RedditApiEndpointInterface.class);
 
+        final Dialog dialog = new Dialog(getContext());
+        dialog.setTitle(R.string.loading_message);
         Call<String> call = apiEndpointInterface.getDetails(url);
         call.enqueue(new Callback<String>() {
             @Override
@@ -101,20 +119,18 @@ public class DetailFragment extends Fragment {
                             .getJSONArray("children");
                     DetailResponse.Child header = gson.fromJson(r.get(0).toString(), DetailResponse.Child.class);
                     Glide.with(getActivity()).load(header.getData().getThumbnail()).into(mMainImage);
-                    Date lastUpdated = new Date(header.getData().getCreatedUtc().longValue() * 1000);
-                    long now = System.currentTimeMillis();
-                    String time = (String) DateUtils.getRelativeTimeSpanString(lastUpdated.getTime(), now, DateUtils.HOUR_IN_MILLIS);
                     mTitle.setText(header.getData().getTitle());
                     mSubReddit.setText(header.getData().getSubreddit());
                     mAuthor.setText(header.getData().getAuthor());
                     mScore.setText(String.valueOf(header.getData().getScore()));
-                    mCommentsCount.setText(header.getData().getNumComments() + " comments");
-                    mTime.setText(time);
+                    mCommentsCount.setText(Utils.formatCommentCount(getActivity(), header.getData().getNumComments()));
+                    mTime.setText(Utils.formatTime(header.getData().getCreatedUtc().longValue()));
+                    mHeader.setVisibility(View.VISIBLE);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-                mCommentAdapter.children = new CommentProcessor().fetchComments(response.body());
-                ;
+                mCommentAdapter.children = new CommentProcessor().fetchComments(getActivity(), response.body());
+
                 mCommentAdapter.notifyDataSetChanged();
             }
 
@@ -126,16 +142,16 @@ public class DetailFragment extends Fragment {
         });
     }
 
-    private void subReplies(String json, String id) {
-        Log.d("ID:", id);
-        DetailResponse subReply = gson.fromJson(json, DetailResponse.class);
-        for (DetailResponse.Child child : subReply.getData().getChildren()) {
-            Log.d("Replies " + id, child.getData().getReplies().toString());
-            if (child.getData().getReplies() != null && !child.getData().getReplies().toString().isEmpty()) {
-                subReplies(child.getData().getReplies().toString(), child.getData().getId());
-            }
-        }
-    }
+//    private void subReplies(String json, String id) {
+//        Log.d("ID:", id);
+//        DetailResponse subReply = gson.fromJson(json, DetailResponse.class);
+//        for (DetailResponse.Child child : subReply.getData().getChildren()) {
+//            Log.d("Replies " + id, child.getData().getReplies().toString());
+//            if (child.getData().getReplies() != null && !child.getData().getReplies().toString().isEmpty()) {
+//                subReplies(child.getData().getReplies().toString(), child.getData().getId());
+//            }
+//        }
+//    }
 
     public void setUrl(String url) {
         this.url = url;
@@ -150,18 +166,16 @@ public class DetailFragment extends Fragment {
         }
 
         class MyViewHolder extends RecyclerView.ViewHolder {
-            TextView title, author, subreddit, score, time, comments;
+            TextView title, author, score, time;
             View padding;
 
             MyViewHolder(View view) {
                 super(view);
                 title = (TextView) view.findViewById(R.id.detail_list_title);
-//                subreddit = (TextView) view.findViewById(R.id.detail_item_subreddit_text_view);
                 author = (TextView) view.findViewById(R.id.detail_list_author);
                 score = (TextView) view.findViewById(R.id.detail_list_score);
                 time = (TextView) view.findViewById(R.id.detail_list_time);
                 padding = view.findViewById(R.id.detail_list_pading);
-//                comments = (TextView) view.findViewById(R.id.list_item_comments_text_view);
             }
         }
 
@@ -172,26 +186,24 @@ public class DetailFragment extends Fragment {
             return new MyViewHolder(itemView);
         }
 
+        int color;
+        ArrayList<Integer> colors = new ArrayList<>();
+
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
             DetailResponse.Comment child = children.get(position);
-            Random rnd = new Random();
-            int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+            if (colors.size() < child.getLevel() - 1) {
+                Random rnd = new Random();
+                color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+                colors.add(color);
+            }
             try {
-//            Date lastUpdated = new Date(child.getData().getCreatedUtc().longValue()*1000);
-//            long now = System.currentTimeMillis();
-//            String time = (String) DateUtils.getRelativeTimeSpanString(lastUpdated.getTime(), now, DateUtils.HOUR_IN_MILLIS);
                 holder.itemView.setPadding(child.getLevel() * 10, 0, 0, 0);
-                holder.title.setText(child.getHtmlText() + ":" + String.valueOf(child.getLevel()));
-//            holder.subreddit.setText(child.getData().getSubreddit());
+                holder.title.setText(child.getHtmlText());
                 holder.author.setText(child.getAuthor());
                 holder.score.setText(String.valueOf(child.getPoints()));
                 holder.time.setText(child.getPostedOn());
-                holder.padding.setBackgroundColor(color);
-
-//            holder.comments.setText(String.valueOf(child.getData().getNumComments()) + " comments");
-//            Glide.with(getActivity()).load(child.getData().getThumbnail()).into(holder.image);
-
+                holder.padding.setBackgroundColor(colors.get(child.getLevel()));
             } catch (Exception e) {
                 e.printStackTrace();
             }

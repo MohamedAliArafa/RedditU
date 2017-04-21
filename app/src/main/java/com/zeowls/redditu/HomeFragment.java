@@ -1,6 +1,7 @@
 package com.zeowls.redditu;
 
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -8,6 +9,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateUtils;
+import android.transition.TransitionInflater;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.GlideBitmapDrawable;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -94,6 +97,7 @@ public class HomeFragment extends Fragment {
         class MyViewHolder extends RecyclerView.ViewHolder {
             TextView title, author, subreddit, score, time, comments;
             ImageView image;
+
             MyViewHolder(View view) {
                 super(view);
                 title = (TextView) view.findViewById(R.id.list_item_title_text_view);
@@ -114,27 +118,66 @@ public class HomeFragment extends Fragment {
         }
 
         @Override
-        public void onBindViewHolder(MyViewHolder holder, int position) {
+        public void onBindViewHolder(final MyViewHolder holder, int position) {
             final Child child = children.get(position);
 
-            Date lastUpdated = new Date(child.getData().getCreatedUtc().longValue()*1000);
+            Date lastUpdated = new Date(child.getData().getCreatedUtc().longValue() * 1000);
             long now = System.currentTimeMillis();
-            String time = (String) DateUtils.getRelativeTimeSpanString(lastUpdated.getTime(), now, DateUtils.HOUR_IN_MILLIS);
+            final String time = (String) DateUtils.getRelativeTimeSpanString(lastUpdated.getTime(), now, DateUtils.HOUR_IN_MILLIS);
 
             holder.title.setText(child.getData().getTitle());
             holder.subreddit.setText(child.getData().getSubreddit());
             holder.author.setText(child.getData().getAuthor());
             holder.score.setText(String.valueOf(child.getData().getScore()));
             holder.time.setText(time);
-            holder.comments.setText(String.valueOf(child.getData().getNumComments()) + " comments");
+            holder.comments.setText(Utils.formatCommentCount(getActivity(), child.getData().getNumComments()));
             Glide.with(getActivity()).load(child.getData().getThumbnail()).into(holder.image);
-
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                holder.image.setTransitionName("Image_trans" + child.getData().getId());
+                holder.title.setTransitionName("Title_trans" + child.getData().getId());
+                holder.subreddit.setTransitionName("SubReddit_trans" + child.getData().getId());
+                holder.author.setTransitionName("Author_trans" + child.getData().getId());
+            }
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     DetailFragment detailFragment = new DetailFragment();
+                    Bundle bundle = new Bundle();
+                    bundle.putString("Title", child.getData().getTitle());
+                    bundle.putString("Subreddit", child.getData().getSubreddit());
+                    bundle.putString("Author", child.getData().getAuthor());
+                    bundle.putString("Score", child.getData().getScore().toString());
+                    bundle.putString("NumComments", Utils.formatCommentCount(getActivity(), child.getData().getNumComments()));
+                    bundle.putString("Time", time);
+                    bundle.putParcelable("Image", (((GlideBitmapDrawable) holder.image.getDrawable().getCurrent()).getBitmap()));
+                    detailFragment.setArguments(bundle);
                     detailFragment.setUrl(child.getData().getPermalink());
-                    getFragmentManager().beginTransaction().replace(R.id.container, detailFragment).commit();
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        setSharedElementReturnTransition(TransitionInflater.from(
+                                getActivity()).inflateTransition(R.transition.change_image_trans));
+                        setExitTransition(TransitionInflater.from(
+                                getActivity()).inflateTransition(android.R.transition.fade));
+
+                        detailFragment.setSharedElementEnterTransition(TransitionInflater.from(
+                                getActivity()).inflateTransition(R.transition.change_image_trans));
+                        detailFragment.setEnterTransition(TransitionInflater.from(
+                                getActivity()).inflateTransition(android.R.transition.fade));
+                        bundle.putString("image_trans", holder.image.getTransitionName());
+                        bundle.putString("title_trans", holder.title.getTransitionName());
+                        bundle.putString("sub_trans", holder.subreddit.getTransitionName());
+                        bundle.putString("author_trans", holder.author.getTransitionName());
+                        getFragmentManager().beginTransaction().add(R.id.container, detailFragment)
+                                .addSharedElement(holder.image, holder.image.getTransitionName())
+                                .addSharedElement(holder.title, holder.title.getTransitionName())
+                                .addSharedElement(holder.subreddit, holder.subreddit.getTransitionName())
+                                .addSharedElement(holder.author, holder.author.getTransitionName())
+                                .addToBackStack(null).commit();
+                    } else {
+                        getFragmentManager().beginTransaction().replace(R.id.container, detailFragment)
+                                .addToBackStack(null).commit();
+                    }
+
+
                 }
             });
         }

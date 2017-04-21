@@ -10,7 +10,7 @@ import retrofit2.converter.scalars.ScalarsConverterFactory;
 class ApiCalls {
 
     // Trailing slash is needed
-    static final String BASE_URL = "https://www.reddit.com";
+    private static final String BASE_URL = "https://www.reddit.com";
     private static Retrofit retrofit = null;
 
 
