@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="spinner_list_item_array" >
+        <item name="hot">Hot</item>
+        <item name="new">New</item>
+        <item name="rising">Rising</item>
+        <item name="controversial">Controversial</item>
+        <item name="top">Top</item>
+    </string-array>
+</resources>

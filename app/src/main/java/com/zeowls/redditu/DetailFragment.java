@@ -1,7 +1,6 @@
 package com.zeowls.redditu;
 
 
-import android.app.Dialog;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Build;
@@ -14,8 +13,10 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.URLUtil;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,7 +24,6 @@ import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -58,6 +58,8 @@ public class DetailFragment extends Fragment {
     TextView mCommentsCount;
     @BindView(R.id.detail_header)
     LinearLayout mHeader;
+    @BindView(R.id.progressbar)
+    ProgressBar mProgressBar;
     CommentAdapter mCommentAdapter;
     ArrayList<DetailResponse.Comment> children = new ArrayList<>();
     Gson gson = new Gson();
@@ -73,19 +75,24 @@ public class DetailFragment extends Fragment {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_detail, container, false);
         ButterKnife.bind(this, v);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mMainImage.setTransitionName(getArguments().getString("image_trans"));
-            mTitle.setTransitionName(getArguments().getString("title_trans"));
-            mSubReddit.setTransitionName(getArguments().getString("sub_trans"));
-            mAuthor.setTransitionName(getArguments().getString("author_trans"));
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                mMainImage.setTransitionName(getArguments().getString("image_trans"));
+                mTitle.setTransitionName(getArguments().getString("title_trans"));
+                mSubReddit.setTransitionName(getArguments().getString("sub_trans"));
+                mAuthor.setTransitionName(getArguments().getString("author_trans"));
+            }
+            mMainImage.setImageBitmap((Bitmap) getArguments().getParcelable("Image"));
+            mTitle.setText(getArguments().getString("Title"));
+            mSubReddit.setText(getArguments().getString("Subreddit"));
+            mAuthor.setText(getArguments().getString("Author"));
+            mScore.setText(String.valueOf(getArguments().getString("Score")));
+            mCommentsCount.setText(getArguments().getString("NumComments"));
+            mTime.setText(getArguments().getString("Time"));
+        } catch (Exception e){
+            e.printStackTrace();
         }
-        mMainImage.setImageBitmap((Bitmap) getArguments().getParcelable("Image"));
-        mTitle.setText(getArguments().getString("Title"));
-        mSubReddit.setText(getArguments().getString("Subreddit"));
-        mAuthor.setText(getArguments().getString("Author"));
-        mScore.setText(String.valueOf(getArguments().getString("Score")));
-        mCommentsCount.setText(getArguments().getString("NumComments"));
-        mTime.setText(getArguments().getString("Time"));
+
         return v;
     }
 
@@ -105,9 +112,7 @@ public class DetailFragment extends Fragment {
         super.onResume();
         RedditApiEndpointInterface apiEndpointInterface = ApiCalls.getDetailClient()
                 .create(RedditApiEndpointInterface.class);
-
-        final Dialog dialog = new Dialog(getContext());
-        dialog.setTitle(R.string.loading_message);
+        url = getArguments().getString("Permalink");
         Call<String> call = apiEndpointInterface.getDetails(url);
         call.enqueue(new Callback<String>() {
             @Override
@@ -118,6 +123,7 @@ public class DetailFragment extends Fragment {
                             .getJSONObject("data")
                             .getJSONArray("children");
                     DetailResponse.Child header = gson.fromJson(r.get(0).toString(), DetailResponse.Child.class);
+                    if (URLUtil.isValidUrl(header.getData().getThumbnail()))
                     Glide.with(getActivity()).load(header.getData().getThumbnail()).into(mMainImage);
                     mTitle.setText(header.getData().getTitle());
                     mSubReddit.setText(header.getData().getSubreddit());
@@ -125,12 +131,11 @@ public class DetailFragment extends Fragment {
                     mScore.setText(String.valueOf(header.getData().getScore()));
                     mCommentsCount.setText(Utils.formatCommentCount(getActivity(), header.getData().getNumComments()));
                     mTime.setText(Utils.formatTime(header.getData().getCreatedUtc().longValue()));
-                    mHeader.setVisibility(View.VISIBLE);
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 mCommentAdapter.children = new CommentProcessor().fetchComments(getActivity(), response.body());
-
+                mProgressBar.setVisibility(View.GONE);
                 mCommentAdapter.notifyDataSetChanged();
             }
 
@@ -138,6 +143,7 @@ public class DetailFragment extends Fragment {
             public void onFailure(Call<String> call, Throwable t) {
                 t.printStackTrace();
                 Toast.makeText(getActivity(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                mProgressBar.setVisibility(View.GONE);
             }
         });
     }

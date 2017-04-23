@@ -2,18 +2,11 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorPrimary"
-    tools:context="com.zeowls.redditu.HomeFragment">
-
-    <ProgressBar
-        android:id="@+id/progressbar"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_gravity="center"/>
+    tools:context="com.zeowls.redditu.WebFragment">
 
     <!-- TODO: Update blank fragment layout -->
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/home_recycler_view"
+    <WebView
+        android:id="@+id/web_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

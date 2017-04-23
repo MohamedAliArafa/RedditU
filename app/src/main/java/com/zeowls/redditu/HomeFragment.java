@@ -1,6 +1,8 @@
 package com.zeowls.redditu;
 
 
+import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -8,21 +10,21 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.format.DateUtils;
 import android.transition.TransitionInflater;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.URLUtil;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.GlideBitmapDrawable;
+import com.zeowls.redditu.activities.DetailActivity;
 
 import java.util.ArrayList;
-import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -40,11 +42,18 @@ public class HomeFragment extends Fragment {
     RecyclerView mHomeRecycler;
     HomeAdapter mHomeAdapter;
     ArrayList<Child> children = new ArrayList<>();
+    private int mPosition = 0;
 
     public HomeFragment() {
         // Required empty public constructor
     }
 
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList("children", children);
+        super.onSaveInstanceState(outState);
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -61,16 +70,45 @@ public class HomeFragment extends Fragment {
         LinearLayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         mHomeRecycler.setLayoutManager(mLayoutManager);
         mHomeRecycler.setItemAnimator(new DefaultItemAnimator());
+        if (savedInstanceState != null)
+            children = savedInstanceState.getParcelableArrayList("children");
         mHomeAdapter = new HomeAdapter(children);
         mHomeRecycler.setAdapter(mHomeAdapter);
 
+        callServer();
+    }
+
+    private void callServer() {
         RedditApiEndpointInterface apiEndpointInterface = ApiCalls.getClient()
                 .create(RedditApiEndpointInterface.class);
+        Call<MainResponse> call;
+        switch (mPosition) {
+            case 0:
+                call = apiEndpointInterface.getPopular();
+                break;
+            case 1:
+                call = apiEndpointInterface.getNew();
+                break;
+            case 2:
+                call = apiEndpointInterface.getNew();
+                break;
+            case 3:
+                call = apiEndpointInterface.getRising();
+                break;
+            case 4:
+                call = apiEndpointInterface.getControversial();
+                break;
+            case 5:
+                call = apiEndpointInterface.getTop();
+                break;
+            default:
+                call = apiEndpointInterface.getPopular();
+        }
 
-        Call<MainResponse> call = apiEndpointInterface.getPopular();
         call.enqueue(new Callback<MainResponse>() {
             @Override
             public void onResponse(Call<MainResponse> call, Response<MainResponse> response) {
+                children.clear();
                 for (Child child : response.body().getData().getChildren()) {
                     children.add(child);
                     Log.d("Child: ", child.getData().getTitle());
@@ -84,6 +122,11 @@ public class HomeFragment extends Fragment {
                 Toast.makeText(getActivity(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    public void onTypeChanged(int position) {
+        mPosition = position;
+        callServer();
     }
 
     class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.MyViewHolder> {
@@ -120,17 +163,14 @@ public class HomeFragment extends Fragment {
         @Override
         public void onBindViewHolder(final MyViewHolder holder, int position) {
             final Child child = children.get(position);
-
-            Date lastUpdated = new Date(child.getData().getCreatedUtc().longValue() * 1000);
-            long now = System.currentTimeMillis();
-            final String time = (String) DateUtils.getRelativeTimeSpanString(lastUpdated.getTime(), now, DateUtils.HOUR_IN_MILLIS);
-
+            final String time = Utils.formatTime(child.getData().getCreatedUtc().longValue());
             holder.title.setText(child.getData().getTitle());
             holder.subreddit.setText(child.getData().getSubreddit());
             holder.author.setText(child.getData().getAuthor());
             holder.score.setText(String.valueOf(child.getData().getScore()));
             holder.time.setText(time);
             holder.comments.setText(Utils.formatCommentCount(getActivity(), child.getData().getNumComments()));
+            if (URLUtil.isValidUrl(child.getData().getThumbnail()))
             Glide.with(getActivity()).load(child.getData().getThumbnail()).into(holder.image);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 holder.image.setTransitionName("Image_trans" + child.getData().getId());
@@ -141,6 +181,7 @@ public class HomeFragment extends Fragment {
             holder.itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+//                    if (child.getData().getUrl().contains("https://www.reddit.com")) {
                     DetailFragment detailFragment = new DetailFragment();
                     Bundle bundle = new Bundle();
                     bundle.putString("Title", child.getData().getTitle());
@@ -149,7 +190,17 @@ public class HomeFragment extends Fragment {
                     bundle.putString("Score", child.getData().getScore().toString());
                     bundle.putString("NumComments", Utils.formatCommentCount(getActivity(), child.getData().getNumComments()));
                     bundle.putString("Time", time);
-                    bundle.putParcelable("Image", (((GlideBitmapDrawable) holder.image.getDrawable().getCurrent()).getBitmap()));
+                    bundle.putString("Permalink", child.getData().getPermalink());
+                    bundle.putString("url", child.getData().getUrl());
+                    bundle.putString("Id", child.getData().getId());
+                    if (holder.image.getDrawable() != null) {
+                        if (URLUtil.isValidUrl(child.getData().getThumbnail()))
+                            bundle.putParcelable("Image", (((GlideBitmapDrawable) holder.image.getDrawable().getCurrent()).getBitmap()));
+                        else
+                            bundle.putParcelable("Image", (((BitmapDrawable) holder.image.getDrawable().getCurrent()).getBitmap()));
+                    } else {
+                        bundle.putParcelable("Image", null);
+                    }
                     detailFragment.setArguments(bundle);
                     detailFragment.setUrl(child.getData().getPermalink());
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -157,7 +208,6 @@ public class HomeFragment extends Fragment {
                                 getActivity()).inflateTransition(R.transition.change_image_trans));
                         setExitTransition(TransitionInflater.from(
                                 getActivity()).inflateTransition(android.R.transition.fade));
-
                         detailFragment.setSharedElementEnterTransition(TransitionInflater.from(
                                 getActivity()).inflateTransition(R.transition.change_image_trans));
                         detailFragment.setEnterTransition(TransitionInflater.from(
@@ -166,18 +216,26 @@ public class HomeFragment extends Fragment {
                         bundle.putString("title_trans", holder.title.getTransitionName());
                         bundle.putString("sub_trans", holder.subreddit.getTransitionName());
                         bundle.putString("author_trans", holder.author.getTransitionName());
-                        getFragmentManager().beginTransaction().add(R.id.container, detailFragment)
-                                .addSharedElement(holder.image, holder.image.getTransitionName())
-                                .addSharedElement(holder.title, holder.title.getTransitionName())
-                                .addSharedElement(holder.subreddit, holder.subreddit.getTransitionName())
-                                .addSharedElement(holder.author, holder.author.getTransitionName())
-                                .addToBackStack(null).commit();
+                        Intent in = new Intent(getActivity(), DetailActivity.class);
+                        in.putExtra("extra", bundle);
+                        getActivity().startActivity(in);
+//                        getFragmentManager().beginTransaction().add(R.id.container, detailFragment)
+//                                .addSharedElement(holder.image, holder.image.getTransitionName())
+//                                .addSharedElement(holder.title, holder.title.getTransitionName())
+//                                .addSharedElement(holder.subreddit, holder.subreddit.getTransitionName())
+//                                .addSharedElement(holder.author, holder.author.getTransitionName())
+//                                .addToBackStack(null).commit();
                     } else {
-                        getFragmentManager().beginTransaction().replace(R.id.container, detailFragment)
-                                .addToBackStack(null).commit();
+                        Intent in = new Intent(getActivity(), DetailActivity.class);
+                        in.putExtra("extra", bundle);
+                        getActivity().startActivity(in);
+//                        getFragmentManager().beginTransaction().replace(R.id.container, detailFragment)
+//                                .addToBackStack(null).commit();
                     }
-
-
+//                    } else {
+//                        Intent in = new Intent(Intent.ACTION_VIEW, Uri.parse(child.getData().getUrl()));
+//                        getActivity().startActivity(in);
+//                    }
                 }
             });
         }

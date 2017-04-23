@@ -15,6 +15,18 @@ interface RedditApiEndpointInterface {
     @GET("r/popular/.json")
     Call<MainResponse> getPopular();
 
+    @GET("new/.json")
+    Call<MainResponse> getNew();
+
+    @GET("rising/.json")
+    Call<MainResponse> getRising();
+
+    @GET("controversial/.json")
+    Call<MainResponse> getControversial();
+
+    @GET("top/.json")
+    Call<MainResponse> getTop();
+
     @GET("{url}.json")
     Call<String> getDetails(@Path(value = "url", encoded=true) String url);
 }

@@ -22,8 +22,7 @@
             android:layout_width="75dp"
             android:layout_height="75dp"
             android:scaleType="centerCrop"
-            android:layout_margin="5dp"
-            android:background="@color/colorAccent" />
+            android:layout_margin="5dp"/>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -61,14 +60,14 @@
                     android:textColor="@android:color/darker_gray"
                     tools:text="cats.com" />
 
-                <TextView
-                    android:id="@+id/detail_item_time_text_view"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textColor="@android:color/darker_gray"
-                    tools:text="14h" />
-
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/detail_item_time_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/darker_gray"
+                tools:text="14h" />
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -114,6 +113,12 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progressbar"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_gravity="center"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/detail_recycler_view"

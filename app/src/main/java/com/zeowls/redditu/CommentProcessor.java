@@ -85,6 +85,7 @@ class CommentProcessor {
             process(context, comments, r, 0);
 
         } catch (Exception e) {
+            if (context != null)
             Log.d(context.getString(R.string.error), context.getString(R.string.could_not_connect) + e);
         }
         return comments;
