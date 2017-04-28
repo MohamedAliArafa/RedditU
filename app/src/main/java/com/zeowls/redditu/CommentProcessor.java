@@ -16,16 +16,19 @@ import java.util.ArrayList;
 
 class CommentProcessor {
 
+    String mRedditID;
+
     // Load various details about the comment
     private Comment loadComment(Context context, JSONObject data, int level) {
         Comment comment = new Comment();
         try {
             comment.htmlText = data.getString(context.getString(R.string.body));
+            comment.redditID = mRedditID;
             comment.author = data.getString(context.getString(R.string.author));
             comment.points = (data.getInt(context.getString(R.string.ups))
                     - data.getInt(context.getString(R.string.downs)))
                     + "";
-            comment.postedOn = Utils.formatTime((long) data.getDouble(context.getString(R.string.created_utc)));
+            comment.postedOn = data.getInt(context.getString(R.string.created_utc));
             comment.level = level;
         } catch (Exception e) {
             Log.d(context.getString(R.string.error), context.getString(R.string.parce_comment_error) + e);
@@ -71,7 +74,8 @@ class CommentProcessor {
 
     // Load the comments as an ArrayList, so that it can be
     // easily passed to the ArrayAdapter
-    ArrayList<Comment> fetchComments(Context context, String raw) {
+    ArrayList<Comment> fetchComments(Context context, String raw, String RedditID) {
+        mRedditID = RedditID;
         ArrayList<Comment> comments = new ArrayList<>();
         try {
 

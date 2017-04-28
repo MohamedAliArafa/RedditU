@@ -67,7 +67,17 @@ public class DetailResponse {
         String htmlText;
         String author;
         String points;
-        String postedOn;
+        double postedOn;
+
+        public String getRedditID() {
+            return redditID;
+        }
+
+        public void setRedditID(String redditID) {
+            this.redditID = redditID;
+        }
+
+        String redditID;
 
         // The 'level' field indicates how deep in the hierarchy
         // this comment is. A top-level comment has a level of 0
@@ -99,11 +109,11 @@ public class DetailResponse {
             this.points = points;
         }
 
-        public String getPostedOn() {
+        public double getPostedOn() {
             return postedOn;
         }
 
-        public void setPostedOn(String postedOn) {
+        public void setPostedOn(double postedOn) {
             this.postedOn = postedOn;
         }
 
@@ -118,7 +128,7 @@ public class DetailResponse {
 
     class Data {
 
-//        @SerializedName("modhash")
+        //        @SerializedName("modhash")
 //        @Expose
 //        private String modhash;
         @SerializedName("children")
@@ -250,7 +260,7 @@ public class DetailResponse {
         @SerializedName("subreddit_id")
         @Expose
         private String subredditId;
-//        @SerializedName("edited")
+        //        @SerializedName("edited")
 //        @Expose
 //        private Boolean edited;
         @SerializedName("link_flair_css_class")

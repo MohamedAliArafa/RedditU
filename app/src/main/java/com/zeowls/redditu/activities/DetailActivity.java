@@ -35,7 +35,6 @@ public class DetailActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         Bundle bundle = getIntent().getBundleExtra("extra");
         DetailFragment detailFragment = new DetailFragment();
-        detailFragment.setUrl(bundle.getString("Permalink"));
         detailFragment.setArguments(bundle);
         MyPagerAdapter myPagerAdapter = new MyPagerAdapter(getSupportFragmentManager(), bundle);
         mPager.setAdapter(myPagerAdapter);
@@ -67,7 +66,6 @@ public class DetailActivity extends AppCompatActivity {
             switch (position) {
                 case 0: // Fragment # 0 - This will show FirstFragment
                     DetailFragment detailFragment = new DetailFragment();
-                    detailFragment.setUrl(bundle.getString("Permalink"));
                     detailFragment.setArguments(bundle);
                     return detailFragment;
                 case 1: // Fragment # 0 - This will show FirstFragment different title

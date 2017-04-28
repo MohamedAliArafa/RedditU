@@ -793,13 +793,9 @@ class SubData implements Parcelable {
 
     protected SubData(Parcel in) {
         this.contestMode = (Boolean) in.readValue(Boolean.class.getClassLoader());
-        this.bannedBy = in.readParcelable(Object.class.getClassLoader());
-        this.mediaEmbed = in.readParcelable(MediaEmbed.class.getClassLoader());
         this.subreddit = in.readString();
         this.selftextHtml = in.readParcelable(Object.class.getClassLoader());
         this.selftext = in.readString();
-        this.likes = in.readParcelable(Object.class.getClassLoader());
-        this.suggestedSort = in.readParcelable(Object.class.getClassLoader());
         this.userReports = new ArrayList<Object>();
         in.readList(this.userReports, Object.class.getClassLoader());
         this.secureMedia = in.readParcelable(Object.class.getClassLoader());
